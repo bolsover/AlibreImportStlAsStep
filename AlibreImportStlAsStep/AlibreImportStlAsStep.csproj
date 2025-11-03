@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="AlibreExportOpen.adc">
+      <None Update="AlibreImportStlAsStep.adc">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="3DPrint.ico">
