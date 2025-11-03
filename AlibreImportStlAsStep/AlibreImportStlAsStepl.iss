@@ -17,13 +17,13 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\AlibreExportOpen
+DefaultDirName={autopf}\AlibreImportStlAsStep
 DefaultGroupName={#MyAppName}
 ;LicenseFile=D:\Repository\Jetbrains\Bolsover\AlibreExportOpen\Copyright and License.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\Setup
-OutputBaseFilename=AlibreExportOpen
+OutputBaseFilename=AlibreImportStlAsStep
 SetupIconFile=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\nexus.ico
 Compression=lzma
 SolidCompression=yes
