@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AlibreImportStlAsStep"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "David Bolsover"
 #define MyAppURL "https://github.com/bolsover/AlibreImportStlAsStep"
 
@@ -28,8 +28,8 @@ SetupIconFile=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStl
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64os
+ArchitecturesInstallIn64BitMode=x64os
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

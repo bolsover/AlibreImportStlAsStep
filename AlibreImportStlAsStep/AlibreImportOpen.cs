@@ -174,7 +174,9 @@ namespace AlibreImportStlAsStep
                 };
 
                 var result = waitForm.ShowDialog(new WindowWrapper(_parentWinHandle));
-                if (!HandleWaitFormResult(result, waitForm))
+                if (HandleWaitFormResult(result, waitForm))
+                    _alibreRoot.ImportSTEPFileEx(stepFile, true, true);
+                else
                     return null!;
             }
             catch (Exception ex)
@@ -205,14 +207,7 @@ namespace AlibreImportStlAsStep
             return saveFileDialog.ShowDialog() == DialogResult.OK ? saveFileDialog.FileName : string.Empty;
         }
 
-        private static void ShowExecutableNotFoundError()
-        {
-            MessageBox.Show(
-                "Could not locate stltostp.exe in the codebase output/tools folders.",
-                "Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        }
+     
 
         private static void AttachCancellationHandler(Button cancelButton, Form waitForm, CancellationTokenSource cts,
             Func<Process?> getProcess)
@@ -300,7 +295,7 @@ namespace AlibreImportStlAsStep
 
                 
                 waitForm.DialogResult = DialogResult.OK;
-                _alibreRoot.ImportSTEPFileEx(stepFilePath, true, true);
+              //  _alibreRoot.ImportSTEPFileEx(stepFilePath, true, true);
             }
             catch (Exception ex)
             {
