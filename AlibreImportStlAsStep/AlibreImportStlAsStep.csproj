@@ -8,15 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="StlToStep\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Reference Include="AlibreAddOn">
         <HintPath>..\..\..\..\AlibreLib\AlibreAddOn.dll</HintPath>
+        <Private>False</Private>
       </Reference>
       <Reference Include="AlibreX">
         <HintPath>..\..\..\..\AlibreLib\AlibreX.dll</HintPath>
+        <Private>False</Private>
       </Reference>
       <Reference Include="System.Windows.Forms" />
     </ItemGroup>
@@ -40,7 +38,13 @@
       <None Update="nexus.ico">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="StlToStep\stltostp.exe">
+      <None Update="test.stl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="test.bat">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="stltostp.exe">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

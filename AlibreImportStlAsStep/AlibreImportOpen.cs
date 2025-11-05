@@ -149,65 +149,178 @@ namespace AlibreImportStlAsStep
 
         private IAlibreAddOnCommand ConvertStlToStepAndImport(IADSession currentSession)
         {
-            var stlFile = ShowOpenStlDialog();
-            if (string.IsNullOrWhiteSpace(stlFile))
-                return null!;
-
-            var stepFile = ShowSaveStepDialog(stlFile);
-            if (string.IsNullOrWhiteSpace(stepFile))
-                return null!;
-
-            var exePath = FindStlToStepExecutable();
-
-            try
+            // Build a combined form that lets the user pick input/output, tolerance, and options,
+            // with a progress bar and cancel while converting.
+            var form = new Form
             {
-                var psi = BuildStlToStepProcessStartInfo(exePath, stlFile, stepFile);
-                var waitForm = CreateWaitForm(out var cancelButton, "Converting STL to STEP, please wait...");
-                var cts = new CancellationTokenSource();
-                Process? proc = null;
+                Text = "STL → STEP Converter",
+                StartPosition = FormStartPosition.Manual,
+                Location = new System.Drawing.Point(300, 300),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ShowInTaskbar = false,
+                Width = 600,
+                Height = 260
+            };
 
-                AttachCancellationHandler(cancelButton, waitForm, cts, () => proc);
+            // Layout: simple table
+            var table = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 6,
+                Padding = new Padding(10),
+                AutoSize = true
+            };
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
 
-                waitForm.Shown += async (_, __) =>
+            // Prepare output textbox first so input browse handler can reference it
+            var txtOut = new TextBox { ReadOnly = true, Anchor = AnchorStyles.Left | AnchorStyles.Right };
+
+            // Input STL
+            var lblIn = new Label { Text = "Input STL:", AutoSize = true, Anchor = AnchorStyles.Left };
+            var txtIn = new TextBox { ReadOnly = true, Anchor = AnchorStyles.Left | AnchorStyles.Right };
+            var btnIn = new Button { Text = "Browse...", Width = 80, Anchor = AnchorStyles.Right };
+            btnIn.Click += (_, __) =>
+            {
+                var dlg = new OpenFileDialog { Filter = "Standard Tessellation Language|*.stl", Title = "Select an STL file" };
+                if (dlg.ShowDialog(new WindowWrapper(_parentWinHandle)) == DialogResult.OK)
                 {
-                    await ExecuteConversionWithProgressAsync(waitForm, psi, stepFile, cts, p => proc = p);
-                };
+                    txtIn.Text = dlg.FileName;
+                    if (string.IsNullOrWhiteSpace(txtOut.Text))
+                        txtOut.Text = Path.ChangeExtension(dlg.FileName, ".stp");
+                }
+            };
 
-                var result = waitForm.ShowDialog(new WindowWrapper(_parentWinHandle));
-                if (HandleWaitFormResult(result, waitForm))
-                    _alibreRoot.ImportSTEPFileEx(stepFile, true, true);
-                else
-                    return null!;
-            }
-            catch (Exception ex)
+            // Output STEP
+            var lblOut = new Label { Text = "Output STEP:", AutoSize = true, Anchor = AnchorStyles.Left };
+            var btnOut = new Button { Text = "Browse...", Width = 80, Anchor = AnchorStyles.Right };
+            btnOut.Click += (_, __) =>
             {
-                MessageBox.Show($"Error running stltostp.exe: {ex.Message}", "Error", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
+                var dlg = new SaveFileDialog { Filter = "STEP file|*.stp;*.step", Title = "Save STEP file" };
+                if (!string.IsNullOrWhiteSpace(txtIn.Text))
+                    dlg.FileName = Path.ChangeExtension(txtIn.Text, ".stp");
+                if (dlg.ShowDialog(new WindowWrapper(_parentWinHandle)) == DialogResult.OK)
+                    txtOut.Text = dlg.FileName;
+            };
+
+            // Tolerance spinner
+            var lblTol = new Label { Text = "Tolerance:", AutoSize = true, Anchor = AnchorStyles.Left };
+            var nudTol = new NumericUpDown
+            {
+                DecimalPlaces = 7,
+                Minimum = 0.0000001M,
+                Maximum = 0.1M,
+                Increment = 0.0001M,
+                Value = 0.0001M,
+                Anchor = AnchorStyles.Left
+            };
+            var lblTolHint = new Label { Text = "(0.1 … 0.0000001)", AutoSize = true, Anchor = AnchorStyles.Left };
+
+            // Checkbox
+            var chkOpen = new CheckBox { Text = "Open converted file in Alibre", Checked = true, AutoSize = true, Anchor = AnchorStyles.Left };
+
+            // Progress bar
+            var pb = new ProgressBar { Style = ProgressBarStyle.Marquee, MarqueeAnimationSpeed = 30, Dock = DockStyle.Fill, Visible = false };
+
+            // Buttons
+            var flowButtons = new FlowLayoutPanel { FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill, AutoSize = true };
+            var btnConvert = new Button { Text = "Convert", Width = 100 };
+            var btnCancel = new Button { Text = "Cancel", Width = 100 };
+            flowButtons.Controls.Add(btnConvert);
+            flowButtons.Controls.Add(btnCancel);
+
+            // Add to table
+            table.Controls.Add(lblIn, 0, 0);
+            table.Controls.Add(txtIn, 1, 0);
+            table.Controls.Add(btnIn, 2, 0);
+
+            table.Controls.Add(lblOut, 0, 1);
+            table.Controls.Add(txtOut, 1, 1);
+            table.Controls.Add(btnOut, 2, 1);
+
+            table.Controls.Add(lblTol, 0, 2);
+            table.Controls.Add(nudTol, 1, 2);
+            table.Controls.Add(lblTolHint, 2, 2);
+
+            table.Controls.Add(chkOpen, 1, 3);
+
+            table.Controls.Add(pb, 0, 4);
+            table.SetColumnSpan(pb, 3);
+
+            table.Controls.Add(flowButtons, 0, 5);
+            table.SetColumnSpan(flowButtons, 3);
+
+            form.Controls.Add(table);
+
+            string stlFile = string.Empty;
+            string stepFile = string.Empty;
+            bool openInAlibre = true;
+
+            var cts = new CancellationTokenSource();
+            Process? proc = null;
+
+            // Wire cancel to close or to cancel running process
+            AttachCancellationHandler(btnCancel, form, cts, () => proc);
+
+            btnConvert.Click += async (_, __) =>
+            {
+                stlFile = txtIn.Text.Trim();
+                stepFile = txtOut.Text.Trim();
+                openInAlibre = chkOpen.Checked;
+                if (string.IsNullOrWhiteSpace(stlFile) || !File.Exists(stlFile))
+                {
+                    MessageBox.Show(form, "Please select a valid input STL file.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(stepFile))
+                {
+                    MessageBox.Show(form, "Please select an output STEP file.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var exePath = FindStlToStepExecutable();
+                if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
+                {
+                    MessageBox.Show(form, "stltostp.exe not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Disable inputs during conversion
+                foreach (Control c in table.Controls) c.Enabled = false;
+                pb.Visible = true;
+
+                try
+                {
+                    var tol = (double)nudTol.Value;
+                    var psi = BuildStlToStepProcessStartInfo(exePath!, stlFile, stepFile, tol);
+                    await ExecuteConversionWithProgressAsync(form, psi, stepFile, cts, p => proc = p);
+                }
+                catch (Exception ex)
+                {
+                    form.Tag = ex;
+                    form.DialogResult = DialogResult.Abort;
+                    form.Close();
+                }
+            };
+
+            var result = form.ShowDialog(new WindowWrapper(_parentWinHandle));
+            if (!HandleWaitFormResult(result, form))
+                return null!;
+
+            // Success
+            if (openInAlibre)
+                _alibreRoot.ImportSTEPFileEx(stepFile, true, true);
+            else
+                MessageBox.Show(new WindowWrapper(_parentWinHandle), "conversion complete", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             return null!;
         }
 
-        private static string ShowOpenStlDialog()
-        {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Standard Tessellation Language|*.stl";
-            openFileDialog.Title = "Select an STL File to convert";
-            openFileDialog.Multiselect = false;
-            return openFileDialog.ShowDialog() == DialogResult.OK ? openFileDialog.FileName : string.Empty;
-        }
-
-        private static string ShowSaveStepDialog(string sourceStlPath)
-        {
-            var defaultStepPath = Path.ChangeExtension(sourceStlPath, ".stp");
-            var saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Step File|*.stp";
-            saveFileDialog.Title = "Save a Step File";
-            saveFileDialog.FileName = defaultStepPath;
-            return saveFileDialog.ShowDialog() == DialogResult.OK ? saveFileDialog.FileName : string.Empty;
-        }
-
-     
+       
 
         private static void AttachCancellationHandler(Button cancelButton, Form waitForm, CancellationTokenSource cts,
             Func<Process?> getProcess)
@@ -295,7 +408,7 @@ namespace AlibreImportStlAsStep
 
                 
                 waitForm.DialogResult = DialogResult.OK;
-              //  _alibreRoot.ImportSTEPFileEx(stepFilePath, true, true);
+              
             }
             catch (Exception ex)
             {
@@ -321,12 +434,17 @@ namespace AlibreImportStlAsStep
         }
 
         private static ProcessStartInfo BuildStlToStepProcessStartInfo(string exePath, string inputStlPath,
-            string outputStepPath)
+            string outputStepPath, double tolerance)
         {
+            var tol = tolerance;
+            if (tol < 0.0000001) tol = 0.0000001;
+            if (tol > 0.1) tol = 0.1;
+            var tolStr = tol.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
             var psi = new ProcessStartInfo
             {
                 FileName = exePath,
-                Arguments = $"\"{inputStlPath}\" \"{outputStepPath}\"",
+                Arguments = $"\"{inputStlPath}\" \"{outputStepPath}\" tol {tolStr}",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -352,50 +470,7 @@ namespace AlibreImportStlAsStep
             return candidates.Select(path => Path.GetFullPath(path)).FirstOrDefault(full => File.Exists(full));
         }
 
-        private static Form CreateWaitForm(out Button cancelButton, string message = "Converting, please wait...")
-        {
-            var f = new Form
-            {
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                StartPosition = FormStartPosition.CenterParent,
-                ControlBox = false,
-                MinimizeBox = false,
-                MaximizeBox = false,
-                ShowInTaskbar = false,
-                Width = 380,
-                Height = 150,
-                Text = "Converting, please wait"
-            };
-
-            var lbl = new Label
-            {
-                Text = message,
-                AutoSize = false,
-                Dock = DockStyle.Top,
-                Height = 60,
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-            };
-
-            var pb = new ProgressBar
-            {
-                Style = ProgressBarStyle.Marquee,
-                Dock = DockStyle.Top,
-                Height = 22,
-                MarqueeAnimationSpeed = 30
-            };
-
-            cancelButton = new Button
-            {
-                Text = "Cancel",
-                Dock = DockStyle.Bottom,
-                Height = 30
-            };
-
-            f.Controls.Add(cancelButton);
-            f.Controls.Add(pb);
-            f.Controls.Add(lbl);
-            return f;
-        }
+        
 
 
         /// <summary>
