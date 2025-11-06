@@ -290,7 +290,14 @@ namespace AlibreImportStlAsStep
                 }
 
                 // Disable inputs during conversion
-                foreach (Control c in table.Controls) c.Enabled = false;
+                // foreach (Control c in table.Controls) c.Enabled = false;
+                btnConvert.Enabled = false;
+                btnIn.Enabled = false;
+                btnOut.Enabled = false;
+                lblTol.Enabled = false;
+                nudTol.Enabled = false;
+                chkOpen.Enabled = false;
+                btnCancel.Enabled = true;
                 pb.Visible = true;
 
                 try

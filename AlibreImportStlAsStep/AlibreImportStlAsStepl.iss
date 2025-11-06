@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AlibreImportStlAsStep"
-#define MyAppVersion "1.1"
+#define MyAppVersion "1.3"
 #define MyAppPublisher "David Bolsover"
 #define MyAppURL "https://github.com/bolsover/AlibreImportStlAsStep"
 
@@ -22,9 +22,9 @@ DefaultGroupName={#MyAppName}
 ;LicenseFile=D:\Repository\Jetbrains\Bolsover\AlibreExportOpen\Copyright and License.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\Setup
+OutputDir=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\Setup
 OutputBaseFilename=AlibreImportStlAsStep
-SetupIconFile=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\nexus.ico
+SetupIconFile=D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\nexus.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -35,13 +35,23 @@ ArchitecturesInstallIn64BitMode=x64os
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\3DPrint.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\3DPrint.svg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\AlibreImportStlAsStep.adc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\AlibreImportStlAsStep.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\StlToStep\stltostp.exe"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\AlibreExportOpen.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Debug\net481\nexus.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\3DPrint.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\3DPrint.svg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\AlibreImportStlAsStep.adc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\AlibreImportStlAsStep.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\stltostp.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\test.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\test.stl"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\nexus.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\concrt140.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\msvcp140.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\msvcp140_1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\msvcp140_2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\msvcp140_atomic_wait.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\msvcp140_codecvt_ids.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\02_Repository\02_Bolsover\AlibreImportStlAsStep\AlibreImportStlAsStep\bin\Release\net481\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversion
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
